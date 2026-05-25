@@ -22,7 +22,7 @@ export function Login() {
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
-  const [registerRole, setRegisterRole] = useState<'student' | 'mentor'>('student');
+  const [registerRole, setRegisterRole] = useState<'estudiante' | 'mentor'>('estudiante');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,9 +202,9 @@ export function Login() {
                     <div className="grid grid-cols-2 gap-3">
                       <Button
                         type="button"
-                        variant={registerRole === 'student' ? 'default' : 'outline'}
+                        variant={registerRole === 'estudiante' ? 'default' : 'outline'}
                         className="w-full"
-                        onClick={() => setRegisterRole('student')}
+                        onClick={() => setRegisterRole('estudiante')}
                       >
                         Estudiante
                       </Button>

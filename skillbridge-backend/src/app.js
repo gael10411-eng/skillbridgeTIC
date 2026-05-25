@@ -1,26 +1,42 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Seguridad básica
+app.use(helmet());
+
+// Limitar peticiones
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+});
+
+app.use(limiter);
+
+// CORS
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+
+// Leer JSON
 app.use(express.json());
 
-// Ruta de prueba conexión frontend-backend
+// Ruta test
 app.get('/api/test', (req, res) => {
-
     res.json({
         message: 'Frontend y backend conectados'
     });
-
 });
 
 // Rutas
-app.use('/users', require('./routes/usersRoutes'));
+app.use('/api/users', require('./routes/usersRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // Futuras rutas
-// app.use('/projects', require('./routes/projectsRoutes'));
-// app.use('/teams', require('./routes/teamsRoutes'));
+// app.use('/api/projects', require('./routes/projectsRoutes'));
 
 module.exports = app;
