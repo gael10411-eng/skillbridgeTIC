@@ -112,7 +112,7 @@ export function Projects() {
     try {
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/projects`
+        `${import.meta.env.VITE_API_URL}/api/projects`
       );
 
       const data = await response.json();
@@ -148,7 +148,7 @@ export function Projects() {
     try {
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/projects`,
+        `${import.meta.env.VITE_API_URL}/api/projects`,
         {
           method: 'POST',
 

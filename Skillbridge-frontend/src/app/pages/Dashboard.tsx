@@ -41,7 +41,7 @@ export function Dashboard() {
         const token = localStorage.getItem('token');
 
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/users`,
+          `${import.meta.env.VITE_API_URL}/api/users`,
           {
             headers: {
               Authorization: `Bearer ${token}`

@@ -163,7 +163,7 @@ export function Mentorships() {
     try {
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/mentors`
+        `${import.meta.env.VITE_API_URL}/api/mentors`
       );
 
       const data = await response.json();
@@ -189,7 +189,7 @@ export function Mentorships() {
     try {
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/mentorships`
+        `${import.meta.env.VITE_API_URL}/api/mentorships`
       );
 
       const data = await response.json();
@@ -216,7 +216,7 @@ export function Mentorships() {
     try {
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/mentorships`,
+        `${import.meta.env.VITE_API_URL}/api/mentorships`,
         {
           method: 'POST',
 
