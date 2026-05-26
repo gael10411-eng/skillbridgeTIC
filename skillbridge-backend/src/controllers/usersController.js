@@ -1,8 +1,7 @@
 const supabase = require('../config/supabaseClient');
-
+const bcrypt = require('bcrypt');
 
 // LISTAR USUARIOS
-
 async function usersList(req, res) {
   try {
     const { data, error } = await supabase
@@ -20,11 +19,17 @@ async function usersList(req, res) {
   }
 }
 
-// CREAR USUARIO (GENÉRICO)
-
+// CREAR USUARIO (REGISTRO)
 async function createUser(req, res) {
   try {
-    const { nombre, email, password_hash, rol } = req.body;
+    const { nombre, email, password, rol } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: 'Password es requerido' });
+    }
+
+    // 🔐 HASH DE PASSWORD
+    const password_hash = await bcrypt.hash(password, 10);
 
     const { data, error } = await supabase
       .from('users')
@@ -44,7 +49,10 @@ async function createUser(req, res) {
     }
 
     res.status(201).json({
-      id: data.id
+      id: data.id,
+      nombre: data.nombre,
+      email: data.email,
+      rol: data.rol
     });
 
   } catch (err) {

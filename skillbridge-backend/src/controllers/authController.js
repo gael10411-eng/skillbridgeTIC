@@ -27,26 +27,7 @@ async function register(req, res) {
       console.error(findError);
     }
 
-    // 2. Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 3. Insertar usuario
-    const { data, error } = await supabase
-      .from('users')
-      .insert([
-        {
-          nombre,
-          email,
-          password_hash: hashedPassword,
-          rol: rol || 'estudiante'
-        }
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
+  
 
     // 4. Crear token
     const token = jwt.sign(

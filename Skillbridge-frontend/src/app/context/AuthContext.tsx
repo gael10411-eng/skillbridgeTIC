@@ -74,17 +74,23 @@ export function AuthProvider({
 
       }
 
-    } catch (error) {
+    } catch (error: any) {
+  console.error("❌ ERROR COMPLETO:", error);
 
-      console.error(
-        'Error cargando usuario:',
-        error
-      );
+  if (error.response) {
+    console.error("📡 STATUS:", error.response.status);
+    console.error("📨 BACKEND DATA:", error.response.data);
+    console.error("🧾 HEADERS:", error.response.headers);
+  } else {
+    console.error("⚠️ ERROR SIN RESPONSE (posible red o CORS)");
+  }
 
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
+  console.error("📦 CONFIG:", error.config);
+  console.error("🧠 MESSAGE:", error.message);
 
-    } finally {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+} finally {
 
       setLoading(false);
 
