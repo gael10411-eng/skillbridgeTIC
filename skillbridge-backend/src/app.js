@@ -27,12 +27,6 @@ app.use(cors({
 // Leer JSON
 app.use(express.json());
 
-// Ruta test
-app.get('/api/test', (req, res) => {
-    res.json({
-        message: 'Frontend y backend conectados'
-    });
-});
 
 // Rutas
 app.use('/api/users', require('./routes/usersRoutes'));
