@@ -1,138 +1,144 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../config/db');
+const supabase = require('../config/supabaseClient');
 
+// ========================
+// REGISTER
+// ========================
 async function register(req, res) {
-    try {
+  try {
+    const { nombre, email, password, rol } = req.body;
 
-        const {
-            nombre,
-            email,
-            password,
-            rol
-        } = req.body;
+    // 1. Verificar si existe usuario
+    const { data: existingUsers, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .single();
 
-        // Verificar usuario existente
-        const [existingUsers] = await db.query(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        if (existingUsers.length > 0) {
-            return res.status(400).json({
-                error: 'El correo ya está registrado'
-            });
-        }
-
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Insertar usuario
-        const [result] = await db.query(
-            'INSERT INTO users (nombre, email, password_hash, rol) VALUES (?, ?, ?, ?)',
-            [nombre, email, hashedPassword, rol || 'student']
-        );
-
-        // Crear token
-        const token = jwt.sign(
-            {
-                id: result.insertId,
-                email,
-                rol: rol || 'student'
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '7d'
-            }
-        );
-
-        res.status(201).json({
-            message: 'Usuario registrado',
-            token
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            error: error.message
-        });
-
+    if (existingUsers) {
+      return res.status(400).json({
+        error: 'El correo ya está registrado'
+      });
     }
+
+    // (Supabase devuelve error cuando no encuentra registro, lo ignoramos)
+    if (findError && findError.code !== 'PGRST116') {
+      console.error(findError);
+    }
+
+    // 2. Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. Insertar usuario
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        {
+          nombre,
+          email,
+          password_hash: hashedPassword,
+          rol: rol || 'estudiante'
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    // 4. Crear token
+    const token = jwt.sign(
+      {
+        id: data.id,
+        email: data.email,
+        rol: data.rol
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 5. RESPUESTA
+    res.status(201).json({
+      message: 'Usuario registrado',
+      token,
+      user: {
+        id: data.id,
+        nombre: data.nombre,
+        email: data.email,
+        rol: data.rol
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
 }
 
+// ========================
+// LOGIN
+// ========================
 async function login(req, res) {
+  try {
+    const { email, password } = req.body;
 
-    try {
+    // 1. Buscar usuario
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-        const {
-            email,
-            password
-        } = req.body;
-
-        // Buscar usuario
-        const [users] = await db.query(
-            'SELECT * FROM users WHERE email = ?',
-            [email]
-        );
-
-        if (users.length === 0) {
-            return res.status(400).json({
-                error: 'Usuario no encontrado'
-            });
-        }
-
-        const user = users[0];
-
-        // Verificar password
-        const validPassword = await bcrypt.compare(
-            password,
-            user.password_hash
-        );
-
-        if (!validPassword) {
-            return res.status(400).json({
-                error: 'Contraseña incorrecta'
-            });
-        }
-
-        // Crear token
-        const token = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                rol: user.rol
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '7d'
-            }
-        );
-
-        res.json({
-            message: 'Login exitoso',
-            token,
-            user: {
-                id: user.id,
-                nombre: user.nombre,
-                email: user.email,
-                rol: user.rol
-            }
-        });
-
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            error: error.message
-        });
-
+    if (error || !user) {
+      return res.status(400).json({
+        error: 'Usuario no encontrado'
+      });
     }
+
+    // 2. Verificar password
+    const validPassword = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!validPassword) {
+      return res.status(400).json({
+        error: 'Contraseña incorrecta'
+      });
+    }
+
+    // 3. Crear token
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        rol: user.rol
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 4. RESPUESTA
+    res.json({
+      message: 'Login exitoso',
+      token,
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
 }
 
 module.exports = {
-    register,
-    login
+  register,
+  login
 };

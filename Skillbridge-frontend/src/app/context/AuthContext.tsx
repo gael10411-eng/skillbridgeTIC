@@ -12,28 +12,38 @@ import {
 } from '../../services/authService';
 
 interface User {
-  id: number;
+  id?: number;
   nombre: string;
   email: string;
   rol: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+
+  login: (
+    email: string,
+    password: string
+  ) => Promise<void>;
+
   register: (
     nombre: string,
     email: string,
     password: string,
     rol: string
   ) => Promise<void>;
+
   logout: () => void;
+
   isAuthenticated: boolean;
+
+  loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+const AuthContext = createContext<
+  AuthContextType | undefined
+>(undefined);
 
 export function AuthProvider({
   children
@@ -41,38 +51,85 @@ export function AuthProvider({
   children: ReactNode;
 }) {
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] =
+    useState<User | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   // Persistencia automática
   useEffect(() => {
 
-    const storedUser = localStorage.getItem('user');
+    try {
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const storedUser =
+        localStorage.getItem('user');
+
+      const token =
+        localStorage.getItem('token');
+
+      if (storedUser && token) {
+
+        setUser(JSON.parse(storedUser));
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        'Error cargando usuario:',
+        error
+      );
+
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+
+    } finally {
+
+      setLoading(false);
+
     }
 
   }, []);
 
-  // LOGIN REAL
+  // LOGIN
   const login = async (
     email: string,
     password: string
   ) => {
 
-    const data = await loginService(email, password);
+    try {
 
-    localStorage.setItem('token', data.token);
+      const data =
+        await loginService(
+          email,
+          password
+        );
 
-    localStorage.setItem(
-      'user',
-      JSON.stringify(data.user)
-    );
+      localStorage.setItem(
+        'token',
+        data.token
+      );
 
-    setUser(data.user);
+      localStorage.setItem(
+        'user',
+        JSON.stringify(data.user)
+      );
+
+      setUser(data.user);
+
+    } catch (error) {
+
+      console.error(
+        'Error login:',
+        error
+      );
+
+      throw error;
+    }
   };
 
-  // REGISTER REAL
+  // REGISTER
   const register = async (
     nombre: string,
     email: string,
@@ -80,27 +137,37 @@ export function AuthProvider({
     rol: string
   ) => {
 
-    const data = await registerService(
-      nombre,
-      email,
-      password,
-      rol
-    );
+    try {
 
-    localStorage.setItem('token', data.token);
+      const data =
+        await registerService(
+          nombre,
+          email,
+          password,
+          rol
+        );
 
-    const userData = {
-      nombre,
-      email,
-      rol
-    };
+      localStorage.setItem(
+        'token',
+        data.token
+      );
 
-    localStorage.setItem(
-      'user',
-      JSON.stringify(userData)
-    );
+      localStorage.setItem(
+        'user',
+        JSON.stringify(data.user)
+      );
 
-    setUser(userData as User);
+      setUser(data.user);
+
+    } catch (error) {
+
+      console.error(
+        'Error register:',
+        error
+      );
+
+      throw error;
+    }
   };
 
   // LOGOUT
@@ -119,7 +186,8 @@ export function AuthProvider({
         login,
         register,
         logout,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
+        loading
       }}
     >
       {children}
@@ -129,9 +197,11 @@ export function AuthProvider({
 
 export function useAuth() {
 
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
+
     throw new Error(
       'useAuth must be used within AuthProvider'
     );

@@ -1,27 +1,104 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
+
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Projects } from './pages/Projects';
 import { Mentorships } from './pages/Mentorships';
 import { Certifications } from './pages/Certifications';
+
 import { Layout } from './components/Layout';
 import { useAuth } from './context/AuthContext';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+/*
+|--------------------------------------------------------------------------
+| Protected Route
+|--------------------------------------------------------------------------
+|
+| Protege rutas privadas usando JWT/localStorage.
+| Si no hay sesión -> regresa al login.
+|
+*/
+
+function ProtectedRoute({
+  children,
+}: {
+  children: ReactNode;
+}) {
+
+  const { isAuthenticated, loading } = useAuth();
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading Auth
+  |--------------------------------------------------------------------------
+  */
+
+  if (loading) {
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500 text-lg">
+          Cargando...
+        </div>
+      </div>
+    );
   }
-  
-  return <Layout>{children}</Layout>;
+
+  /*
+  |--------------------------------------------------------------------------
+  | Not Authenticated
+  |--------------------------------------------------------------------------
+  */
+
+  if (!isAuthenticated) {
+
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Authenticated
+  |--------------------------------------------------------------------------
+  */
+
+  return (
+    <Layout>
+      {children}
+    </Layout>
+  );
 }
 
+/*
+|--------------------------------------------------------------------------
+| Router
+|--------------------------------------------------------------------------
+*/
+
 export const router = createBrowserRouter([
+
+  /*
+  |--------------------------------------------------------------------------
+  | LOGIN
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '/',
     element: <Login />,
   },
+
+  /*
+  |--------------------------------------------------------------------------
+  | DASHBOARD
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '/dashboard',
     element: (
@@ -30,6 +107,13 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+  /*
+  |--------------------------------------------------------------------------
+  | PROJECTS
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '/projects',
     element: (
@@ -38,6 +122,13 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+  /*
+  |--------------------------------------------------------------------------
+  | MENTORSHIPS
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '/mentorships',
     element: (
@@ -46,6 +137,13 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+  /*
+  |--------------------------------------------------------------------------
+  | CERTIFICATIONS
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '/certifications',
     element: (
@@ -54,8 +152,20 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
+  /*
+  |--------------------------------------------------------------------------
+  | 404
+  |--------------------------------------------------------------------------
+  */
+
   {
     path: '*',
-    element: <Navigate to="/" replace />,
+    element: (
+      <Navigate
+        to="/"
+        replace
+      />
+    ),
   },
 ]);

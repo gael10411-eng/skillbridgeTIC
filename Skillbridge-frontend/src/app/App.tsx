@@ -16,11 +16,11 @@ export default function App() {
 
         const response = await api.get('/test');
 
-        console.log(response.data);
+        console.log('Backend conectado:', response.data);
 
-      } catch(error){
+      } catch (error) {
 
-        console.log(error);
+        console.log('Error conectando backend:', error);
 
       }
 
