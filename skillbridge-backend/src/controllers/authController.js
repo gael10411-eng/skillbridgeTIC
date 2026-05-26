@@ -6,30 +6,61 @@ const supabase = require('../config/supabaseClient');
 // REGISTER
 // ========================
 async function register(req, res) {
-    console.log("BODY RECIBIDO:", req.body);
+  console.log("BODY RECIBIDO:", req.body);
 
   try {
     const { nombre, email, password, rol } = req.body;
 
-    // 1. Verificar si existe usuario
-    const { data: existingUsers, error: findError } = await supabase
+    // ❌ Validación básica
+    if (!nombre || !email || !password) {
+      return res.status(400).json({
+        error: 'Nombre, email y password son obligatorios'
+      });
+    }
+
+    // 1. Verificar si usuario ya existe
+    const { data: existingUser, error: findError } = await supabase
       .from('users')
       .select('id')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (existingUsers) {
+    if (findError) {
+      console.error(findError);
+      return res.status(500).json({
+        error: 'Error verificando usuario'
+      });
+    }
+
+    if (existingUser) {
       return res.status(400).json({
         error: 'El correo ya está registrado'
       });
     }
 
-    // (Supabase devuelve error cuando no encuentra registro, lo ignoramos)
-    if (findError && findError.code !== 'PGRST116') {
-      console.error(findError);
-    }
+    // 2. Hashear password
+    const password_hash = await bcrypt.hash(password, 10);
 
-  
+    // 3. Insertar usuario
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        {
+          nombre,
+          email,
+          password_hash,
+          rol: rol || 'estudiante'
+        }
+      ])
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error(error);
+      return res.status(500).json({
+        error: error?.message || 'Error creando usuario'
+      });
+    }
 
     // 4. Crear token
     const token = jwt.sign(
@@ -42,9 +73,9 @@ async function register(req, res) {
       { expiresIn: '7d' }
     );
 
-    // 5. RESPUESTA
-    res.status(201).json({
-      message: 'Usuario registrado',
+    // 5. RESPUESTA FINAL
+    return res.status(201).json({
+      message: 'Usuario registrado correctamente',
       token,
       user: {
         id: data.id,
@@ -55,8 +86,10 @@ async function register(req, res) {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.error("REGISTER ERROR:", error);
+    return res.status(500).json({
+      error: error.message
+    });
   }
 }
 
@@ -67,14 +100,27 @@ async function login(req, res) {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email y password son obligatorios'
+      });
+    }
+
     // 1. Buscar usuario
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (error || !user) {
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        error: 'Error buscando usuario'
+      });
+    }
+
+    if (!user) {
       return res.status(400).json({
         error: 'Usuario no encontrado'
       });
@@ -104,7 +150,7 @@ async function login(req, res) {
     );
 
     // 4. RESPUESTA
-    res.json({
+    return res.json({
       message: 'Login exitoso',
       token,
       user: {
@@ -116,8 +162,10 @@ async function login(req, res) {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    console.error("LOGIN ERROR:", error);
+    return res.status(500).json({
+      error: error.message
+    });
   }
 }
 
