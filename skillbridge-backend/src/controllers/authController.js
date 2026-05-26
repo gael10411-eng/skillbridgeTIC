@@ -1,8 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const supabas// =================================================
-// skillbridge-backend/src/controllers/authController.js
-// =================================================
+const supabase = require('../config/supabaseClient');
+
 
 const db = require('../config/db');
 
