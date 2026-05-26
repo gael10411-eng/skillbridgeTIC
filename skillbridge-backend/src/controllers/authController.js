@@ -1,20 +1,158 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const supabase = require('../config/supabaseClient');
+const supabas// =================================================
+// skillbridge-backend/src/controllers/authController.js
+// =================================================
 
-// ========================
-// TEST DB (DEBUG)
-// ========================
-async function testDB(req, res) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*');
+const db = require('../config/db');
 
-  console.log("🔥 TEST DB DATA:", data);
-  console.log("🔥 TEST DB ERROR:", error);
+// =====================================
+// LOGIN
+// =====================================
 
-  return res.json({ data, error });
-}
+const login = async (req, res) => {
+
+  try {
+
+    const { email, password } = req.body;
+
+    // Validar campos
+    if (!email || !password) {
+
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan datos'
+      });
+
+    }
+
+    // Buscar usuario
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    // Usuario no existe
+    if (rows.length === 0) {
+
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+
+    }
+
+    const user = rows[0];
+
+    // Comparar contraseña
+    // OJO:
+    // aquí estás usando contraseña normal
+    // luego puedes usar bcrypt
+
+    if (user.password_hash !== password) {
+
+      return res.status(401).json({
+        success: false,
+        message: 'Contraseña incorrecta'
+      });
+
+    }
+
+    // Login correcto
+    res.json({
+      success: true,
+      message: 'Login correcto',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+
+  }
+
+};
+
+// =====================================
+// REGISTER
+// =====================================
+
+const register = async (req, res) => {
+
+  try {
+
+    const {
+      name,
+      email,
+      password
+    } = req.body;
+
+    // Validaciones
+    if (!name || !email || !password) {
+
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan datos'
+      });
+
+    }
+
+    // Verificar si ya existe
+    const [exist] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (exist.length > 0) {
+
+      return res.status(400).json({
+        success: false,
+        message: 'El usuario ya existe'
+      });
+
+    }
+
+    // Insertar usuario
+    await db.query(
+      `INSERT INTO users 
+      (name, email, password_hash, role)
+      VALUES (?, ?, ?, ?)`,
+      [name, email, password, 'cliente']
+    );
+
+    res.json({
+      success: true,
+      message: 'Usuario registrado'
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+
+  }
+
+};
+
+module.exports = {
+  login,
+  register
+};e = require('../config/supabaseClient');
+
 
 // ========================
 // REGISTER
@@ -173,8 +311,7 @@ async function login(req, res) {
   }
 }
 
-module.exports = {
+module.exports ={
   register,
   login,
-  testDB
 };
