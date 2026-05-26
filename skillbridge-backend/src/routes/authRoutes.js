@@ -7,8 +7,8 @@ const {
     testDB
 } = require('../controllers/authController');
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/test-db', testDB);
+router.post('/api/register', register);
+router.post('/api/login', login);
+router.get('/api/test-db', testDB);
 
 module.exports = router;
