@@ -3,6 +3,20 @@ const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabaseClient');
 
 // ========================
+// TEST DB (DEBUG)
+// ========================
+async function testDB(req, res) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
+
+  console.log("🔥 TEST DB DATA:", data);
+  console.log("🔥 TEST DB ERROR:", error);
+
+  return res.json({ data, error });
+}
+
+// ========================
 // REGISTER
 // ========================
 async function register(req, res) {
@@ -11,14 +25,12 @@ async function register(req, res) {
   try {
     const { nombre, email, password, rol } = req.body;
 
-    // ❌ Validación básica
     if (!nombre || !email || !password) {
       return res.status(400).json({
         error: 'Nombre, email y password son obligatorios'
       });
     }
 
-    // 1. Verificar si usuario ya existe
     const { data: existingUser, error: findError } = await supabase
       .from('users')
       .select('id')
@@ -38,10 +50,8 @@ async function register(req, res) {
       });
     }
 
-    // 2. Hashear password
     const password_hash = await bcrypt.hash(password, 10);
 
-    // 3. Insertar usuario
     const { data, error } = await supabase
       .from('users')
       .insert([
@@ -62,7 +72,6 @@ async function register(req, res) {
       });
     }
 
-    // 4. Crear token
     const token = jwt.sign(
       {
         id: data.id,
@@ -73,7 +82,6 @@ async function register(req, res) {
       { expiresIn: '7d' }
     );
 
-    // 5. RESPUESTA FINAL
     return res.status(201).json({
       message: 'Usuario registrado correctamente',
       token,
@@ -106,7 +114,6 @@ async function login(req, res) {
       });
     }
 
-    // 1. Buscar usuario
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -126,7 +133,6 @@ async function login(req, res) {
       });
     }
 
-    // 2. Verificar password
     const validPassword = await bcrypt.compare(
       password,
       user.password_hash
@@ -138,7 +144,6 @@ async function login(req, res) {
       });
     }
 
-    // 3. Crear token
     const token = jwt.sign(
       {
         id: user.id,
@@ -149,7 +154,6 @@ async function login(req, res) {
       { expiresIn: '7d' }
     );
 
-    // 4. RESPUESTA
     return res.json({
       message: 'Login exitoso',
       token,
@@ -171,5 +175,6 @@ async function login(req, res) {
 
 module.exports = {
   register,
-  login
+  login,
+  testDB
 };
