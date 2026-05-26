@@ -6,6 +6,8 @@ const supabase = require('../config/supabaseClient');
 // REGISTER
 // ========================
 async function register(req, res) {
+    console.log("BODY RECIBIDO:", req.body);
+
   try {
     const { nombre, email, password, rol } = req.body;
 
