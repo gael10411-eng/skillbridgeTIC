@@ -2,172 +2,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabaseClient');
 
-
-const db = require('../config/db');
-
-// =====================================
-// LOGIN
-// =====================================
-
-const login = async (req, res) => {
-
-  try {
-
-    const { email, password } = req.body;
-
-    // Validar campos
-    if (!email || !password) {
-
-      return res.status(400).json({
-        success: false,
-        message: 'Faltan datos'
-      });
-
-    }
-
-    // Buscar usuario
-    const [rows] = await db.query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-
-    // Usuario no existe
-    if (rows.length === 0) {
-
-      return res.status(401).json({
-        success: false,
-        message: 'Usuario no encontrado'
-      });
-
-    }
-
-    const user = rows[0];
-
-    // Comparar contraseña
-    // OJO:
-    // aquí estás usando contraseña normal
-    // luego puedes usar bcrypt
-
-    if (user.password_hash !== password) {
-
-      return res.status(401).json({
-        success: false,
-        message: 'Contraseña incorrecta'
-      });
-
-    }
-
-    // Login correcto
-    res.json({
-      success: true,
-      message: 'Login correcto',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-
-  }
-
-};
-
-// =====================================
+// ========================
 // REGISTER
-// =====================================
-
+// ========================
 const register = async (req, res) => {
 
-  try {
-
-    const {
-      name,
-      email,
-      password
-    } = req.body;
-
-    // Validaciones
-    if (!name || !email || !password) {
-
-      return res.status(400).json({
-        success: false,
-        message: 'Faltan datos'
-      });
-
-    }
-
-    // Verificar si ya existe
-    const [exist] = await db.query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-
-    if (exist.length > 0) {
-
-      return res.status(400).json({
-        success: false,
-        message: 'El usuario ya existe'
-      });
-
-    }
-
-    // Insertar usuario
-    await db.query(
-      `INSERT INTO users 
-      (name, email, password_hash, role)
-      VALUES (?, ?, ?, ?)`,
-      [name, email, password, 'cliente']
-    );
-
-    res.json({
-      success: true,
-      message: 'Usuario registrado'
-    });
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-
-  }
-
-};
-
-module.exports = {
-  login,
-  register
-};e = require('../config/supabaseClient');
-
-
-// ========================
-// REGISTER
-// ========================
-async function register(req, res) {
   console.log("BODY RECIBIDO:", req.body);
 
   try {
+
     const { nombre, email, password, rol } = req.body;
 
+    // Validaciones
     if (!nombre || !email || !password) {
+
       return res.status(400).json({
+        success: false,
         error: 'Nombre, email y password son obligatorios'
       });
+
     }
 
+    // Verificar si el usuario ya existe
     const { data: existingUser, error: findError } = await supabase
       .from('users')
       .select('id')
@@ -175,20 +31,30 @@ async function register(req, res) {
       .maybeSingle();
 
     if (findError) {
+
       console.error(findError);
+
       return res.status(500).json({
+        success: false,
         error: 'Error verificando usuario'
       });
+
     }
 
+    // Usuario existente
     if (existingUser) {
+
       return res.status(400).json({
+        success: false,
         error: 'El correo ya está registrado'
       });
+
     }
 
+    // Encriptar contraseña
     const password_hash = await bcrypt.hash(password, 10);
 
+    // Insertar usuario
     const { data, error } = await supabase
       .from('users')
       .insert([
@@ -203,12 +69,17 @@ async function register(req, res) {
       .single();
 
     if (error || !data) {
+
       console.error(error);
+
       return res.status(500).json({
+        success: false,
         error: error?.message || 'Error creando usuario'
       });
+
     }
 
+    // Crear token
     const token = jwt.sign(
       {
         id: data.id,
@@ -216,10 +87,14 @@ async function register(req, res) {
         rol: data.rol
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      {
+        expiresIn: '7d'
+      }
     );
 
+    // Respuesta
     return res.status(201).json({
+      success: true,
       message: 'Usuario registrado correctamente',
       token,
       user: {
@@ -231,26 +106,38 @@ async function register(req, res) {
     });
 
   } catch (error) {
+
     console.error("REGISTER ERROR:", error);
+
     return res.status(500).json({
+      success: false,
       error: error.message
     });
+
   }
-}
+
+};
 
 // ========================
 // LOGIN
 // ========================
-async function login(req, res) {
+const login = async (req, res) => {
+
   try {
+
     const { email, password } = req.body;
 
+    // Validaciones
     if (!email || !password) {
+
       return res.status(400).json({
+        success: false,
         error: 'Email y password son obligatorios'
       });
+
     }
 
+    // Buscar usuario
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
@@ -258,29 +145,42 @@ async function login(req, res) {
       .maybeSingle();
 
     if (error) {
+
       console.error(error);
+
       return res.status(500).json({
+        success: false,
         error: 'Error buscando usuario'
       });
+
     }
 
+    // Usuario no encontrado
     if (!user) {
+
       return res.status(400).json({
+        success: false,
         error: 'Usuario no encontrado'
       });
+
     }
 
+    // Comparar contraseña
     const validPassword = await bcrypt.compare(
       password,
       user.password_hash
     );
 
     if (!validPassword) {
+
       return res.status(400).json({
+        success: false,
         error: 'Contraseña incorrecta'
       });
+
     }
 
+    // Crear token
     const token = jwt.sign(
       {
         id: user.id,
@@ -288,10 +188,14 @@ async function login(req, res) {
         rol: user.rol
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      {
+        expiresIn: '7d'
+      }
     );
 
+    // Respuesta
     return res.json({
+      success: true,
       message: 'Login exitoso',
       token,
       user: {
@@ -303,14 +207,22 @@ async function login(req, res) {
     });
 
   } catch (error) {
+
     console.error("LOGIN ERROR:", error);
+
     return res.status(500).json({
+      success: false,
       error: error.message
     });
-  }
-}
 
-module.exports ={
+  }
+
+};
+
+// ========================
+// EXPORTS
+// ========================
+module.exports = {
   register,
-  login,
+  login
 };
