@@ -8,5 +8,6 @@ const {
 
 router.post('/register', register);
 router.post('/login', login);
+router.get('/test-db', testDB);
 
 module.exports = router;
