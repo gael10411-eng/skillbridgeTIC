@@ -3,7 +3,8 @@ const router = express.Router();
 
 const {
     register,
-    login
+    login,
+    testDB
 } = require('../controllers/authController');
 
 router.post('/register', register);
