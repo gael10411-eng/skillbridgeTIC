@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+app.set('trust proxy', 1);
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
