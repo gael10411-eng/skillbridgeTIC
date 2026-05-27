@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from 'react';
+﻿import { ReactNode, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,7 +38,7 @@ export function Layout({ children }: LayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   
@@ -54,7 +54,8 @@ export function Layout({ children }: LayoutProps) {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: FolderKanban, label: 'Proyectos', path: '/projects' },
     { icon: Users, label: 'Mentorías', path: '/mentorships' },
-    { icon: Award, label: 'Certificaciones', path: '/certifications' }
+    { icon: Award, label: 'Certificaciones', path: '/certifications' },
+    { icon: User, label: 'Perfil', path: '/profile' }
   ];
 
   const NavLinks = useMemo(() => {
@@ -178,7 +179,7 @@ export function Layout({ children }: LayoutProps) {
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Mi Perfil</span>
                   </DropdownMenuItem>
@@ -204,3 +205,4 @@ export function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+

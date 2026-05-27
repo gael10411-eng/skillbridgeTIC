@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 
 import {
   Calendar,
@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 
 import { toast } from 'sonner';
+import api from '../../services/api';
+import { useAuth } from '../context/AuthContext';
 
 import {
   Card,
@@ -112,11 +114,10 @@ interface MentorshipSession {
 
 export function Mentorships() {
 
+  const { user } = useAuth();
+
   const [isRequestDialogOpen, setIsRequestDialogOpen] =
     useState(false);
-
-  const [selectedMentor, setSelectedMentor] =
-    useState<number | null>(null);
 
   const [mentors, setMentors] =
     useState<Mentor[]>([]);
@@ -162,11 +163,8 @@ export function Mentorships() {
 
     try {
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/mentors`
-      );
-
-      const data = await response.json();
+      const response = await api.get('/mentors');
+      const data = response.data;
 
       setMentors(data);
 
@@ -188,11 +186,12 @@ export function Mentorships() {
 
     try {
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/mentorships`
-      );
-
-      const data = await response.json();
+      const response = await api.get('/mentorships', {
+        params: {
+          user_id: user?.id
+        }
+      });
+      const data = response.data;
 
       setSessions(data);
 
@@ -214,42 +213,33 @@ export function Mentorships() {
   const handleRequestMentorship = async () => {
 
     try {
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/mentorships`,
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type': 'application/json'
-          },
-
-          body: JSON.stringify({
-
-            mentor_id: mentorId,
-
-            tema,
-
-            descripcion,
-
-            fecha,
-
-            hora,
-
-            duracion
-          })
-        }
-      );
-
-      if (!response.ok) {
-
-        throw new Error();
+      if (!user?.id) {
+        toast.error(
+          'No se encontró tu usuario activo'
+        );
+        return;
       }
+
+      await api.post('/mentorships', {
+        mentor_id: mentorId,
+        estudiante_id: user.id,
+        tema,
+        descripcion,
+        fecha,
+        hora,
+        duracion
+      });
 
       toast.success(
         'Solicitud enviada'
       );
 
+      setMentorId('');
+      setTema('');
+      setDescripcion('');
+      setFecha('');
+      setHora('');
+      setDuracion('60');
       setIsRequestDialogOpen(false);
 
       fetchSessions();
@@ -574,9 +564,10 @@ export function Mentorships() {
 
                       <Button
                         size="sm"
-                        onClick={() =>
-                          setIsRequestDialogOpen(true)
-                        }
+                        onClick={() => {
+                          setMentorId(mentor.id.toString());
+                          setIsRequestDialogOpen(true);
+                        }}
                       >
                         Solicitar
                       </Button>
@@ -683,3 +674,4 @@ export function Mentorships() {
     </div>
   );
 }
+

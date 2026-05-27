@@ -6,7 +6,7 @@ const {
   getProjects
 } = require('../controllers/projectController');
 
-router.post('/projects', createProject);
-router.get('/projects', getProjects);
+router.post('/', createProject);
+router.get('/', getProjects);
 
 module.exports = router;

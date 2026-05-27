@@ -1,11 +1,12 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import type { FormEvent } from 'react';
 
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
 
 import { Button } from '../components/ui/button';
+import { Checkbox } from '../components/ui/checkbox';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
@@ -55,9 +56,10 @@ export function Login() {
   const [registerEmail, setRegisterEmail] = useState('');
 
   const [registerPassword, setRegisterPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const [registerRole, setRegisterRole] = useState<
-    'estudiante' | 'mentor'
+    'estudiante' | 'empresa' | 'institucion'
   >('estudiante');
 
   // LOGIN HANDLER
@@ -66,6 +68,13 @@ export function Login() {
   ) => {
 
     e.preventDefault();
+
+    if (!acceptTerms) {
+      toast.error(
+        'Debes aceptar los términos y condiciones'
+      );
+      return;
+    }
 
     setIsLoading(true);
 
@@ -323,6 +332,33 @@ export function Login() {
                     </div>
                   </div>
 
+                  <div className="flex items-start gap-3 rounded-lg border border-gray-200 p-3">
+                    <Checkbox
+                      id="terms"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) =>
+                        setAcceptTerms(checked === true)
+                      }
+                      className="mt-0.5"
+                    />
+
+                    <Label
+                      htmlFor="terms"
+                      className="text-sm font-normal leading-5 text-gray-600"
+                    >
+                      Acepto los{' '}
+                      <Link
+                        to="/terms"
+                        className="font-medium text-indigo-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        términos y condiciones
+                      </Link>
+                      {' '}de TIC Academy.
+                    </Label>
+                  </div>
+
                   <Button
                     type="submit"
                     className="w-full"
@@ -433,7 +469,7 @@ export function Login() {
                       Tipo de Usuario
                     </Label>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
                       <Button
                         type="button"
@@ -455,18 +491,35 @@ export function Login() {
                       <Button
                         type="button"
                         variant={
-                          registerRole === 'mentor'
+                          registerRole === 'empresa'
                             ? 'default'
                             : 'outline'
                         }
                         className="w-full"
                         onClick={() =>
                           setRegisterRole(
-                            'mentor'
+                            'empresa'
                           )
                         }
                       >
-                        Mentor
+                        Empresa
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant={
+                          registerRole === 'institucion'
+                            ? 'default'
+                            : 'outline'
+                        }
+                        className="w-full"
+                        onClick={() =>
+                          setRegisterRole(
+                            'institucion'
+                          )
+                        }
+                      >
+                        Institución
                       </Button>
 
                     </div>

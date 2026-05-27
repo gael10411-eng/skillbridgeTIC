@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext';
+import api from '../../services/api';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -38,22 +39,8 @@ export function Dashboard() {
 
       try {
 
-        const token = localStorage.getItem('token');
-
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/users`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Error obteniendo usuarios');
-        }
-
-        const data = await response.json();
+        const response = await api.get('/users');
+        const data = response.data;
 
         setUsers(data);
 
@@ -409,3 +396,4 @@ export function Dashboard() {
     </div>
   );
 }
+

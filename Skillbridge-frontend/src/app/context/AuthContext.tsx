@@ -1,4 +1,4 @@
-import React, {
+﻿import React, {
   createContext,
   useContext,
   useState,
@@ -74,23 +74,14 @@ export function AuthProvider({
 
       }
 
-    } catch (error: any) {
-  console.error("❌ ERROR COMPLETO:", error);
+    } catch (error) {
 
-  if (error.response) {
-    console.error("📡 STATUS:", error.response.status);
-    console.error("📨 BACKEND DATA:", error.response.data);
-    console.error("🧾 HEADERS:", error.response.headers);
-  } else {
-    console.error("⚠️ ERROR SIN RESPONSE (posible red o CORS)");
-  }
+      console.error('Error restaurando sesión:', error);
 
-  console.error("📦 CONFIG:", error.config);
-  console.error("🧠 MESSAGE:", error.message);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
 
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-} finally {
+    } finally {
 
       setLoading(false);
 

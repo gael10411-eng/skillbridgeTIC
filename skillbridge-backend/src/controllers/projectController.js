@@ -1,3 +1,5 @@
+const supabase = require('../config/supabaseClient');
+
 const createProject = async (req, res) => {
   try {
     const {
@@ -8,6 +10,13 @@ const createProject = async (req, res) => {
       estado,
       imagen
     } = req.body;
+
+    if (!titulo || !owner_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Titulo y owner_id son obligatorios'
+      });
+    }
 
     const { data, error } = await supabase
       .from('projects')

@@ -4,7 +4,6 @@
 
 const express = require('express');
 const cors = require('cors');
-const projectRoutes = require('./routes/projectRoutes');
 
 const app = express();
 
@@ -21,8 +20,10 @@ app.get('/api/test', (req, res) => {
 });
   
 // Rutas
-app.use('/users', require('./routes/usersRoutes'));
-app.use('auth', require('./routes/authRoutes'));
-app.use('projects', require('./routes/projectRoutes'));
+app.use('/api/users', require('./routes/usersRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/certifications', require('./routes/certificationRoutes'));
+app.use('/api', require('./routes/mentorshipRoutes'));
 
 module.exports = app;

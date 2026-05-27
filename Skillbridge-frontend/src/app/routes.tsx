@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+﻿import { createBrowserRouter, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 import { Login } from './pages/Login';
@@ -6,6 +6,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Projects } from './pages/Projects';
 import { Mentorships } from './pages/Mentorships';
 import { Certifications } from './pages/Certifications';
+import { Profile } from './pages/Profile';
+import { Terms } from './pages/Terms';
 
 import { Layout } from './components/Layout';
 import { useAuth } from './context/AuthContext';
@@ -95,6 +97,17 @@ export const router = createBrowserRouter([
 
   /*
   |--------------------------------------------------------------------------
+  | TERMS
+  |--------------------------------------------------------------------------
+  */
+
+  {
+    path: '/terms',
+    element: <Terms />,
+  },
+
+  /*
+  |--------------------------------------------------------------------------
   | DASHBOARD
   |--------------------------------------------------------------------------
   */
@@ -149,6 +162,21 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Certifications />
+      </ProtectedRoute>
+    ),
+  },
+
+  /*
+  |--------------------------------------------------------------------------
+  | PROFILE
+  |--------------------------------------------------------------------------
+  */
+
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <Profile />
       </ProtectedRoute>
     ),
   },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 
 import {
   Card,
@@ -43,6 +43,8 @@ import {
 } from 'lucide-react';
 
 import { toast } from 'sonner';
+import api from '../../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface Project {
 
@@ -74,6 +76,8 @@ interface Project {
 }
 
 export function Projects() {
+
+  const { user } = useAuth();
 
   const [projects, setProjects] =
     useState<Project[]>([]);
@@ -111,11 +115,8 @@ export function Projects() {
 
     try {
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/projects`
-      );
-
-      const data = await response.json();
+      const response = await api.get('/projects');
+      const data = response.data;
 
       // AGREGAMOS DATOS TEMPORALES
       const formattedProjects = data.map(
@@ -147,30 +148,13 @@ export function Projects() {
 
     try {
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/projects`,
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type': 'application/json',
-          },
-
-          body: JSON.stringify({
-            titulo,
-            descripcion,
-            visibilidad,
-            imagen,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-
-        throw new Error(
-          'Error creando proyecto'
-        );
-      }
+      await api.post('/projects', {
+        titulo,
+        descripcion,
+        owner_id: user?.id,
+        visibilidad,
+        imagen,
+      });
 
       toast.success(
         'Proyecto creado exitosamente'
@@ -658,3 +642,4 @@ export function Projects() {
     </div>
   );
 }
+

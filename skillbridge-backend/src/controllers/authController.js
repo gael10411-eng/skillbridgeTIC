@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+﻿const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabaseClient');
 
@@ -12,6 +12,8 @@ const register = async (req, res) => {
   try {
 
     const { nombre, email, password, rol } = req.body;
+    const allowedRoles = ['estudiante', 'empresa', 'institucion', 'admin'];
+    const safeRole = allowedRoles.includes(rol) ? rol : 'estudiante';
 
     // Validaciones
     if (!nombre || !email || !password) {
@@ -62,7 +64,7 @@ const register = async (req, res) => {
           nombre,
           email,
           password_hash,
-          rol: rol || 'estudiante'
+          rol: safeRole
         }
       ])
       .select()
