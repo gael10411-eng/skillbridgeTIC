@@ -38,12 +38,12 @@ export function Layout({ children }: LayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login', { replace: true });
   };
 
   
   const roleLabels: Record<string, string> = {
-    student: 'Estudiante',
+    estudiante: 'Estudiante',
     mentor: 'Mentor',
     admin: 'Administrador',
     empresa: 'Empresa',
