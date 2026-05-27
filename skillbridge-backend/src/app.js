@@ -4,6 +4,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const projectRoutes = require('./routes/projectRoutes');
 
 const app = express();
 
@@ -18,9 +19,10 @@ app.get('/api/test', (req, res) => {
     message: 'Backend funcionando correctamente'
   });
 });
-
+  
 // Rutas
 app.use('/users', require('./routes/usersRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
 
 module.exports = app;
