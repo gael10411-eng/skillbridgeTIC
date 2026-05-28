@@ -9,7 +9,7 @@ const app = express();
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '35mb' }));
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {

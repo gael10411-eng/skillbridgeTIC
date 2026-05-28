@@ -3,10 +3,14 @@ const router = express.Router();
 
 const {
   createProject,
-  getProjects
+  getProjects,
+  getProjectById,
+  uploadProjectFile
 } = require('../controllers/projectController');
 
-router.post('/', createProject);
 router.get('/', getProjects);
+router.post('/', createProject);
+router.get('/:id', getProjectById);
+router.post('/:id/files', uploadProjectFile);
 
 module.exports = router;

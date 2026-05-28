@@ -1,645 +1,249 @@
 ﻿import { useEffect, useState } from 'react';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '../components/ui/card';
-
-import { Button } from '../components/ui/button';
-
-import { Input } from '../components/ui/input';
-
-import { Label } from '../components/ui/label';
-
-import { Textarea } from '../components/ui/textarea';
+import { Link } from 'react-router-dom';
+import { Clock, Eye, Image as ImageIcon, Plus, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Badge } from '../components/ui/badge';
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '../components/ui/dialog';
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../components/ui/select';
-
-import {
-  Plus,
-  Search,
-  Clock,
-  Image as ImageIcon
-} from 'lucide-react';
-
-import { toast } from 'sonner';
-import api from '../../services/api';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Textarea } from '../components/ui/textarea';
 import { useAuth } from '../context/AuthContext';
+import {
+  createProject,
+  getProjects,
+  type Project,
+  type ProjectVisibility
+} from '../../services/projectService';
 
-interface Project {
-
-  id: number;
-
-  titulo: string;
-
-  descripcion: string;
-
-  owner_id: number;
-
-  visibilidad:
-    | 'publico'
-    | 'privado'
-    | 'solo_empresas'
-    | 'solo_instituciones';
-
-  estado:
-    | 'activo'
-    | 'cerrado';
-
-  imagen?: string;
-
-  fecha_creacion: string;
-
-  // TEMPORALES
-  progreso?: string;
-  tareas?: string;
+interface ProjectsProps {
+  scope?: 'explore' | 'mine';
 }
 
-export function Projects() {
+const visibilityLabels: Record<ProjectVisibility, string> = {
+  publico: 'Público',
+  privado: 'Privado',
+  solo_empresas: 'Solo empresas',
+  solo_instituciones: 'Solo instituciones'
+};
 
+export function Projects({ scope = 'explore' }: ProjectsProps) {
   const { user } = useAuth();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const [projects, setProjects] =
-    useState<Project[]>([]);
+  const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [visibilidad, setVisibilidad] = useState<ProjectVisibility>('privado');
+  const [imagen, setImagen] = useState('');
 
-  const [loading, setLoading] =
-    useState(true);
+  const isMine = scope === 'mine';
 
-  const [searchTerm, setSearchTerm] =
-    useState('');
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] =
-    useState(false);
-
-  // FORM
-  const [titulo, setTitulo] =
-    useState('');
-
-  const [descripcion, setDescripcion] =
-    useState('');
-
-  const [visibilidad, setVisibilidad] =
-    useState('privado');
-
-  const [imagen, setImagen] =
-    useState('');
-
-  // CARGAR PROYECTOS
   useEffect(() => {
-
     fetchProjects();
-
-  }, []);
+  }, [scope, user?.id, user?.rol]);
 
   const fetchProjects = async () => {
-
     try {
-
-      const response = await api.get('/projects');
-      const data = response.data;
-
-      // AGREGAMOS DATOS TEMPORALES
-      const formattedProjects = data.map(
-        (project: Project) => ({
-          ...project,
-          progreso: 'No disponible aún',
-          tareas: 'No disponible aún',
-        })
+      setLoading(true);
+      const data = await getProjects(
+        {
+          id: user?.id,
+          rol: user?.rol
+        },
+        scope
       );
 
-      setProjects(formattedProjects);
-
+      setProjects(data);
     } catch (error) {
-
       console.error(error);
-
-      toast.error(
-        'Error cargando proyectos'
-      );
-
+      toast.error('Error cargando proyectos');
     } finally {
-
       setLoading(false);
     }
   };
 
-  // CREAR PROYECTO
   const handleCreateProject = async () => {
+    if (!user?.id) {
+      toast.error('No se encontró tu usuario activo');
+      return;
+    }
 
     try {
-
-      await api.post('/projects', {
+      await createProject({
         titulo,
         descripcion,
-        owner_id: user?.id,
+        owner_id: user.id,
         visibilidad,
-        imagen,
+        imagen
       });
 
-      toast.success(
-        'Proyecto creado exitosamente'
-      );
-
+      toast.success('Proyecto creado exitosamente');
       setTitulo('');
       setDescripcion('');
       setImagen('');
-
+      setVisibilidad('privado');
       setIsCreateDialogOpen(false);
-
       fetchProjects();
-
     } catch (error) {
-
       console.error(error);
-
-      toast.error(
-        'Error creando proyecto'
-      );
+      toast.error('Error creando proyecto');
     }
   };
 
-  // FILTRAR
-  const filteredProjects = projects.filter(
-    (project) =>
-      project.titulo
-        .toLowerCase()
-        .includes(
-          searchTerm.toLowerCase()
-        ) ||
+  const filteredProjects = projects.filter((project) => {
+    const text = `${project.titulo} ${project.descripcion || ''} ${project.owner?.nombre || ''}`.toLowerCase();
+    return text.includes(searchTerm.toLowerCase());
+  });
 
-      project.descripcion
-        .toLowerCase()
-        .includes(
-          searchTerm.toLowerCase()
-        )
-  );
-
-  // LOADING
   if (loading) {
-
-    return (
-
-      <div className="p-6">
-        Cargando proyectos...
-      </div>
-    );
+    return <div className="p-6 text-gray-500">Cargando proyectos...</div>;
   }
 
   return (
-
     <div className="space-y-6">
-
-      {/* HEADER */}
-      <div className="
-        flex
-        flex-col
-        sm:flex-row
-        sm:items-center
-        sm:justify-between
-        gap-4
-      ">
-
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-
-          <h1 className="
-            text-3xl
-            font-bold
-            text-gray-900
-          ">
-            Proyectos
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isMine ? 'Mis Proyectos' : 'Proyectos'}
           </h1>
-
-          <p className="
-            text-gray-600
-            mt-1
-          ">
-            Gestiona tus proyectos
+          <p className="text-gray-600 mt-1">
+            {isMine
+              ? 'Consulta y administra los proyectos que creaste'
+              : 'Explora proyectos visibles para tu tipo de cuenta'}
           </p>
-
         </div>
 
-        {/* DIALOG */}
-        <Dialog
-          open={isCreateDialogOpen}
-          onOpenChange={
-            setIsCreateDialogOpen
-          }
-        >
-
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-
             <Button>
-
-              <Plus className="
-                mr-2
-                h-4
-                w-4
-              " />
-
+              <Plus className="mr-2 h-4 w-4" />
               Nuevo Proyecto
-
             </Button>
-
           </DialogTrigger>
 
           <DialogContent>
-
             <DialogHeader>
-
-              <DialogTitle>
-                Crear Proyecto
-              </DialogTitle>
-
-              <DialogDescription>
-                Completa la información
-              </DialogDescription>
-
+              <DialogTitle>Crear Proyecto</DialogTitle>
+              <DialogDescription>Completa la información inicial del proyecto</DialogDescription>
             </DialogHeader>
 
-            <div className="
-              space-y-4
-              py-4
-            ">
-
-              {/* TITULO */}
-              <div className="
-                space-y-2
-              ">
-
-                <Label>
-                  Título
-                </Label>
-
-                <Input
-                  value={titulo}
-                  onChange={(e) =>
-                    setTitulo(
-                      e.target.value
-                    )
-                  }
-                  placeholder="
-                    Mi Proyecto
-                  "
-                />
-
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Título</Label>
+                <Input value={titulo} onChange={(event) => setTitulo(event.target.value)} placeholder="Mi Proyecto" />
               </div>
 
-              {/* DESCRIPCION */}
-              <div className="
-                space-y-2
-              ">
-
-                <Label>
-                  Descripción
-                </Label>
-
-                <Textarea
-                  value={descripcion}
-                  onChange={(e) =>
-                    setDescripcion(
-                      e.target.value
-                    )
-                  }
-                  placeholder="
-                    Describe el proyecto
-                  "
-                />
-
+              <div className="space-y-2">
+                <Label>Descripción</Label>
+                <Textarea value={descripcion} onChange={(event) => setDescripcion(event.target.value)} placeholder="Describe el proyecto" />
               </div>
 
-              {/* VISIBILIDAD */}
-              <div className="
-                space-y-2
-              ">
-
-                <Label>
-                  Visibilidad
-                </Label>
-
-                <Select
-                  value={visibilidad}
-                  onValueChange={
-                    setVisibilidad
-                  }
-                >
-
+              <div className="space-y-2">
+                <Label>Visibilidad</Label>
+                <Select value={visibilidad} onValueChange={(value) => setVisibilidad(value as ProjectVisibility)}>
                   <SelectTrigger>
-
                     <SelectValue />
-
                   </SelectTrigger>
-
                   <SelectContent>
-
-                    <SelectItem
-                      value="publico"
-                    >
-                      Público
-                    </SelectItem>
-
-                    <SelectItem
-                      value="privado"
-                    >
-                      Privado
-                    </SelectItem>
-
-                    <SelectItem
-                      value="solo_empresas"
-                    >
-                      Solo Empresas
-                    </SelectItem>
-
-                    <SelectItem
-                      value="solo_instituciones"
-                    >
-                      Solo Instituciones
-                    </SelectItem>
-
+                    <SelectItem value="publico">Público</SelectItem>
+                    <SelectItem value="privado">Privado</SelectItem>
+                    <SelectItem value="solo_empresas">Solo Empresas</SelectItem>
+                    <SelectItem value="solo_instituciones">Solo Instituciones</SelectItem>
                   </SelectContent>
-
                 </Select>
-
               </div>
 
-              {/* IMAGEN */}
-              <div className="
-                space-y-2
-              ">
-
-                <Label>
-                  URL Imagen
-                </Label>
-
-                <Input
-                  value={imagen}
-                  onChange={(e) =>
-                    setImagen(
-                      e.target.value
-                    )
-                  }
-                  placeholder="
-                    https://...
-                  "
-                />
-
+              <div className="space-y-2">
+                <Label>URL Imagen</Label>
+                <Input value={imagen} onChange={(event) => setImagen(event.target.value)} placeholder="https://..." />
               </div>
-
             </div>
 
-            <div className="
-              flex
-              justify-end
-              gap-3
-            ">
-
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setIsCreateDialogOpen(
-                    false
-                  )
-                }
-              >
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancelar
               </Button>
-
-              <Button
-                onClick={
-                  handleCreateProject
-                }
-              >
+              <Button onClick={handleCreateProject}>
                 Crear Proyecto
               </Button>
-
             </div>
-
           </DialogContent>
-
         </Dialog>
-
       </div>
 
-      {/* SEARCH */}
       <Card>
-
-        <CardContent className="
-          pt-6
-        ">
-
-          <div className="
-            relative
-          ">
-
-            <Search className="
-              absolute
-              left-3
-              top-3
-              h-4
-              w-4
-              text-gray-400
-            " />
-
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="
-                Buscar proyectos...
-              "
-              className="
-                pl-10
-              "
+              placeholder="Buscar proyectos..."
+              className="pl-10"
               value={searchTerm}
-              onChange={(e) =>
-                setSearchTerm(
-                  e.target.value
-                )
-              }
+              onChange={(event) => setSearchTerm(event.target.value)}
             />
-
           </div>
-
         </CardContent>
-
       </Card>
 
-      {/* PROYECTOS */}
-      <div className="
-        grid
-        grid-cols-1
-        lg:grid-cols-2
-        gap-6
-      ">
-
-        {filteredProjects.map(
-          (project) => (
-
-            <Card
-              key={project.id}
-              className="
-                hover:shadow-lg
-                transition-shadow
-              "
-            >
-
-              {/* IMAGEN */}
+      {filteredProjects.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center text-gray-500">
+            {isMine ? 'Aún no tienes proyectos creados.' : 'No hay proyectos disponibles para tu usuario.'}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredProjects.map((project) => (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow overflow-hidden">
               {project.imagen && (
-
-                <img
-                  src={project.imagen}
-                  alt={project.titulo}
-                  className="
-                    w-full
-                    h-48
-                    object-cover
-                    rounded-t-lg
-                  "
-                />
+                <img src={project.imagen} alt={project.titulo} className="w-full h-48 object-cover" />
               )}
 
               <CardHeader>
-
-                <div className="
-                  flex
-                  items-center
-                  justify-between
-                ">
-
-                  <Badge>
-
-                    {project.estado}
-
-                  </Badge>
-
-                  <Badge
-                    variant="outline"
-                  >
-
-                    {project.visibilidad}
-
-                  </Badge>
-
+                <div className="flex items-center justify-between gap-3">
+                  <Badge>{project.estado}</Badge>
+                  <Badge variant="outline">{visibilityLabels[project.visibilidad]}</Badge>
                 </div>
-
-                <CardTitle>
-
-                  {project.titulo}
-
-                </CardTitle>
-
-                <CardDescription>
-
-                  {project.descripcion}
-
-                </CardDescription>
-
+                <CardTitle>{project.titulo}</CardTitle>
+                <CardDescription>{project.descripcion}</CardDescription>
               </CardHeader>
 
-              <CardContent className="
-                space-y-4
-              ">
-
-                {/* TEMPORAL */}
-                <div className="
-                  text-sm
-                  text-gray-500
-                  space-y-1
-                ">
-
-                  <p>
-                    Progreso:
-                    {' '}
-                    {project.progreso}
-                  </p>
-
-                  <p>
-                    Tareas:
-                    {' '}
-                    {project.tareas}
-                  </p>
-
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-500 space-y-1">
+                  <p>Propietario: {project.owner?.nombre || (project.owner_id === user?.id ? 'Tú' : 'Usuario')}</p>
+                  <p>Archivos: disponibles en el detalle del proyecto</p>
                 </div>
 
-                {/* FECHA */}
-                <div className="
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-gray-500
-                ">
-
-                  <Clock className="
-                    h-3
-                    w-3
-                  " />
-
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Clock className="h-3 w-3" />
                   <span>
-
-                    Creado:
-                    {' '}
-
-                    {new Date(
-                      project.fecha_creacion
-                    ).toLocaleDateString(
-                      'es-ES'
-                    )}
-
+                    Creado: {new Date(project.fecha_creacion).toLocaleDateString('es-ES')}
                   </span>
-
                 </div>
 
-                {/* FOOTER */}
-                <div className="
-                  pt-4
-                  border-t
-                  flex
-                  justify-end
-                ">
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                  >
-
-                    <ImageIcon className="
-                      mr-2
-                      h-4
-                      w-4
-                    " />
-
-                    Ver Proyecto
-
+                <div className="pt-4 border-t flex justify-end">
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/projects/${project.id}`}>
+                      {project.imagen ? (
+                        <ImageIcon className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Eye className="mr-2 h-4 w-4" />
+                      )}
+                      Ver Proyecto
+                    </Link>
                   </Button>
-
                 </div>
-
               </CardContent>
-
             </Card>
-          )
-        )}
-
-      </div>
-
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

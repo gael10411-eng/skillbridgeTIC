@@ -53,6 +53,7 @@ export function Layout({ children }: LayoutProps) {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: FolderKanban, label: 'Proyectos', path: '/projects' },
+    { icon: FolderKanban, label: 'Mis Proyectos', path: '/my-projects' },
     { icon: Users, label: 'Mentorías', path: '/mentorships' },
     { icon: Award, label: 'Certificaciones', path: '/certifications' },
     { icon: User, label: 'Perfil', path: '/profile' }

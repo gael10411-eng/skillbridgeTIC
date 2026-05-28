@@ -365,7 +365,7 @@ export function Profile() {
               )}
 
               <Button asChild variant="outline" className="mt-4">
-                <Link to="/projects">Ver Proyectos</Link>
+                <Link to="/my-projects">Ver Mis Proyectos</Link>
               </Button>
             </CardContent>
           </Card>
