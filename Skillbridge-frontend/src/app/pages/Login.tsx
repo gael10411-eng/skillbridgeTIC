@@ -355,7 +355,7 @@ export function Login() {
                       >
                         términos y condiciones
                       </Link>
-                      {' '}de TIC Academy.
+                      {' '}de SkillBridge.
                     </Label>
                   </div>
 
