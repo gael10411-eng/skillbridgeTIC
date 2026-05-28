@@ -1,123 +1,218 @@
-﻿import api from '../services/api';
-export type ProjectVisibility =
-  | 'publico'
-  | 'privado'
-  | 'solo_empresas'
-  | 'solo_instituciones';
+﻿import { createBrowserRouter, Navigate } from 'react-router-dom';
+import type { ReactNode } from 'react';
 
-export type ProjectStatus = 'activo' | 'cerrado';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Projects } from './pages/Projects';
+import { ProjectDetail } from './pages/ProjectDetail';
+import { Mentorships } from './pages/Mentorships';
+import { Certifications } from './pages/Certifications';
+import { Profile } from './pages/Profile';
+import { Terms } from './pages/Terms';
 
-export interface ProjectOwner {
-  id: number;
-  nombre: string;
-  email: string;
-  rol: string;
-  avatar?: string | null;
+import { Layout } from './components/Layout';
+import { useAuth } from './context/AuthContext';
+
+/*
+|--------------------------------------------------------------------------
+| Protected Route
+|--------------------------------------------------------------------------
+|
+| Protege rutas privadas usando JWT/localStorage.
+| Si no hay sesión -> regresa al login.
+|
+*/
+
+function ProtectedRoute({
+  children,
+}: {
+  children: ReactNode;
+}) {
+
+  const { isAuthenticated, loading } = useAuth();
+
+  /*
+  |--------------------------------------------------------------------------
+  | Loading Auth
+  |--------------------------------------------------------------------------
+  */
+
+  if (loading) {
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500 text-lg">
+          Cargando...
+        </div>
+      </div>
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Not Authenticated
+  |--------------------------------------------------------------------------
+  */
+
+  if (!isAuthenticated) {
+
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Authenticated
+  |--------------------------------------------------------------------------
+  */
+
+  return (
+    <Layout>
+      {children}
+    </Layout>
+  );
 }
 
-export interface ProjectFile {
-  id: number;
-  project_id: number;
-  user_id: number;
-  nombre: string;
-  tipo_mime: string;
-  tamano: number;
-  storage_path: string;
-  url: string;
-  fecha_creacion: string;
-}
+/*
+|--------------------------------------------------------------------------
+| Router
+|--------------------------------------------------------------------------
+*/
 
-export interface Project {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  owner_id: number;
-  owner?: ProjectOwner;
-  visibilidad: ProjectVisibility;
-  estado: ProjectStatus;
-  imagen?: string | null;
-  fecha_creacion: string;
-  files?: ProjectFile[];
-}
+export const router = createBrowserRouter([
 
-export interface ProjectViewer {
-  id?: number;
-  rol?: string;
-}
+  /*
+  |--------------------------------------------------------------------------
+  | LOGIN
+  |--------------------------------------------------------------------------
+  */
 
-export interface CreateProjectPayload {
-  titulo: string;
-  descripcion: string;
-  owner_id: number;
-  visibilidad?: ProjectVisibility;
-  estado?: ProjectStatus;
-  imagen?: string;
-}
+  {
+    path: '/',
+    element: <Login />,
+  },
 
-export async function getProjects(
-  viewer: ProjectViewer,
-  scope: 'explore' | 'mine' = 'explore'
-): Promise<Project[]> {
-  const response = await api.get('/projects', {
-    params: {
-      scope,
-      viewer_id: viewer.id,
-      viewer_role: viewer.rol
-    }
-  });
+  /*
+  |--------------------------------------------------------------------------
+  | TERMS
+  |--------------------------------------------------------------------------
+  */
 
-  return response.data;
-}
+  {
+    path: '/terms',
+    element: <Terms />,
+  },
 
-export async function getProject(
-  id: string,
-  viewer: ProjectViewer
-): Promise<Project> {
-  const response = await api.get(`/projects/${id}`, {
-    params: {
-      viewer_id: viewer.id,
-      viewer_role: viewer.rol
-    }
-  });
+  /*
+  |--------------------------------------------------------------------------
+  | DASHBOARD
+  |--------------------------------------------------------------------------
+  */
 
-  return response.data;
-}
+  {
+    path: '/dashboard',
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
 
-export async function createProject(
-  payload: CreateProjectPayload
-): Promise<Project> {
-  const response = await api.post('/projects', payload);
-  return response.data.project;
-}
+  /*
+  |--------------------------------------------------------------------------
+  | PROJECTS
+  |--------------------------------------------------------------------------
+  */
 
-export async function uploadProjectFile(
-  projectId: number,
-  userId: number,
-  file: File
-): Promise<ProjectFile> {
-  const contenido_base64 = await fileToBase64(file);
+  {
+    path: '/projects',
+    element: (
+      <ProtectedRoute>
+        <Projects />
+      </ProtectedRoute>
+    ),
+  },
 
-  const response = await api.post(`/projects/${projectId}/files`, {
-    user_id: userId,
-    nombre: file.name,
-    tipo_mime: file.type || 'application/octet-stream',
-    tamano: file.size,
-    contenido_base64
-  });
+  /*
+  |--------------------------------------------------------------------------
+  | MENTORSHIPS
+  |--------------------------------------------------------------------------
+  */
 
-  return response.data.file;
-}
+  {
+    path: '/mentorships',
+    element: (
+      <ProtectedRoute>
+        <Mentorships />
+      </ProtectedRoute>
+    ),
+  },
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+  /*
+  |--------------------------------------------------------------------------
+  | CERTIFICATIONS
+  |--------------------------------------------------------------------------
+  */
 
-    reader.onload = () => {
-      const result = String(reader.result || '');
-      resolve(result.split(',')[1] || '');
-    };
+  {
+    path: '/certifications',
+    element: (
+      <ProtectedRoute>
+        <Certifications />
+      </ProtectedRoute>
+    ),
+  },
 
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
+  /*
+  |--------------------------------------------------------------------------
+  | PROFILE
+  |--------------------------------------------------------------------------
+  */
+
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: '/my-projects',
+    element: (
+      <ProtectedRoute>
+        <Projects scope="mine" />
+      </ProtectedRoute>
+    ),
+  },
+
+  {
+    path: '/projects/:id',
+    element: (
+      <ProtectedRoute>
+        <ProjectDetail />
+      </ProtectedRoute>
+    ),
+  },
+
+  /*
+  |--------------------------------------------------------------------------
+  | 404
+  |--------------------------------------------------------------------------
+  */
+
+  {
+    path: '*',
+    element: (
+      <Navigate
+        to="/"
+        replace
+      />
+    ),
+  },
+]);
