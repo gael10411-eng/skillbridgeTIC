@@ -206,7 +206,7 @@ export function Certifications() {
                       <CardTitle className="text-lg leading-tight">{earned.certification.nombre}</CardTitle>
                       <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
                     </div>
-                    <CardDescription>TIC Academy</CardDescription>
+                    <CardDescription>SkillBridge</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="text-sm text-gray-600">
@@ -314,7 +314,7 @@ export function Certifications() {
               <DialogHeader>
                 <DialogTitle className="text-2xl">{selectedCert.certification.nombre}</DialogTitle>
                 <DialogDescription>
-                  Emitido por TIC Academy
+                  Emitido por SkillBridge
                 </DialogDescription>
               </DialogHeader>
 

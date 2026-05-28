@@ -8,7 +8,7 @@ const sections = [
   {
     title: '1. Uso de la plataforma',
     content:
-      'TIC Academy es una plataforma académica colaborativa para gestionar proyectos, mentorías, cursos y certificaciones. Al crear una cuenta, aceptas utilizarla de forma responsable, respetuosa y conforme a fines educativos o profesionales.'
+      'SkillBridge es una plataforma académica colaborativa para gestionar proyectos, mentorías, cursos y certificaciones. Al crear una cuenta, aceptas utilizarla de forma responsable, respetuosa y conforme a fines educativos o profesionales.'
   },
   {
     title: '2. Registro y seguridad de la cuenta',
@@ -28,7 +28,7 @@ const sections = [
   {
     title: '5. Certificaciones y progreso',
     content:
-      'Las certificaciones, avances y estadísticas reflejan la información disponible en la plataforma. TIC Academy puede actualizar requisitos, niveles o criterios de validación para mantener la calidad académica.'
+      'Las certificaciones, avances y estadísticas reflejan la información disponible en la plataforma. SkillBridge puede actualizar requisitos, niveles o criterios de validación para mantener la calidad académica.'
   },
   {
     title: '6. Datos personales',
@@ -38,7 +38,7 @@ const sections = [
   {
     title: '7. Suspensión o cancelación',
     content:
-      'TIC Academy puede suspender cuentas que incumplan estos términos, afecten la seguridad del sistema o hagan uso indebido de la plataforma.'
+      'SkillBridge puede suspender cuentas que incumplan estos términos, afecten la seguridad del sistema o hagan uso indebido de la plataforma.'
   },
   {
     title: '8. Cambios en los términos',
@@ -57,7 +57,7 @@ export function Terms() {
               <GraduationCap className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              TIC Academy
+              SkillBridge
             </span>
           </Link>
 
@@ -83,7 +83,7 @@ export function Terms() {
           </div>
 
           <p className="text-gray-700 max-w-3xl">
-            Estos términos regulan el acceso y uso de TIC Academy. Al registrarte o utilizar la plataforma, aceptas estas condiciones.
+            Estos términos regulan el acceso y uso de SkillBridge. Al registrarte o utilizar la plataforma, aceptas estas condiciones.
           </p>
         </div>
 
@@ -113,7 +113,7 @@ export function Terms() {
           <CardHeader>
             <CardTitle>Contacto</CardTitle>
             <CardDescription>
-              Para dudas sobre estos términos, contacta al equipo administrador de TIC Academy desde los canales oficiales de la plataforma.
+              Para dudas sobre estos términos, contacta al equipo administrador de SkillBridge desde los canales oficiales de la plataforma.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -104,7 +104,7 @@ export function Layout({ children }: LayoutProps) {
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hidden sm:block">
-                TIC Academy
+                SkillBridge
               </span>
             </Link>
 
@@ -148,7 +148,7 @@ export function Layout({ children }: LayoutProps) {
                       <GraduationCap className="h-6 w-6 text-white" />
                     </div>
                     <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      TIC Academy
+                      SkillBridge
                     </span>
                   </div>
 
