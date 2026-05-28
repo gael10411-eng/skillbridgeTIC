@@ -163,7 +163,7 @@ export function Login() {
             <div>
 
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                TIC Academy
+                SkillBridge
               </h1>
 
               <p className="text-gray-600">
